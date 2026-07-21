@@ -1,0 +1,4 @@
+interface:
+  display_name: "算法名词解释"
+  short_description: "深入解释算法概念、原理链条与工程应用场景"
+  default_prompt: "解释算法名词的根本原理、使用场景、关键概念、网络资料来源、配图说明、失败条件和工程注意点；默认不存档，只有用户明确要求时才保存为 Markdown。"
