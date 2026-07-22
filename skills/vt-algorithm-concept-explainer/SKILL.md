@@ -1,5 +1,5 @@
 ---
-name: blazar-algorithm-concept-explainer
+name: vt-algorithm-concept-explainer
 description: 深入解释算法名词和核心原理，面向初学者，用配图、应用场景、工程背景和必要的网络资料辅助理解。适用于用户要求解释算法、图像处理方法、数学概念、OpenCV/HALCON 函数、信号处理概念，或 PhaseCorrelate、FFT、互功率谱、相关面、模板匹配、滤波、形态学、标定、配准、优化、缺陷检测等相关知识点时。
 ---
 

@@ -6,11 +6,13 @@
 
 | 技能 | 用途 |
 | --- | --- |
-| `blazar-algorithm-concept-explainer` | 解释图像算法、数学概念、OpenCV/HALCON 函数与工业视觉工程要点。 |
+| `vt-algorithm-concept-explainer` | 解释图像算法、数学概念、OpenCV/HALCON 函数与工业视觉工程要点。 |
+| `vt-project-activity-analysis` | 分析 C/C++、Python Git 工程及子工程的贡献度、分支活跃度与构建产物。 |
 
 ## 安装
 
-新电脑先安装 Node.js https://nodejs.org/en/download/current，确保以下命令能运行：
+新电脑先安装 Node.js https://nodejs.org/en/download/current
+确保以下命令能运行：
 
 ```powershell
 npx --version

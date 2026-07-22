@@ -1,0 +1,4 @@
+interface:
+  display_name: "工程活跃度分析"
+  short_description: "分析多语言 Git 工程及子工程的贡献度、提交与分支活跃度"
+  default_prompt: "分析指定 Git 工程及其子工程的活跃度、贡献度和构建产物排除情况；若未指定时间则分析全部历史，若时间表述模糊则先要求明确时间范围。"
