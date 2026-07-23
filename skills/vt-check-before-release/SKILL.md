@@ -119,22 +119,25 @@ git diff --name-status <tag>..HEAD
 
 ### PDF 生成
 
-环境依赖：Python 3 + `markdown-it-py` + Chrome 或 Edge
+环境依赖：Python 3 + `markdown-it-py` + `pypdf` + Chrome 或 Edge
 
-1. **写临时 Python 脚本**：`markdown-it-py`（`gfm-like` preset，`enable(["table"])`）转 HTML，嵌入美观 CSS
-   - ⚠️ **CSS 含花括号，HTML 拼接必须用字符串拼接（`+`），不要用 f-string**（花括号冲突会导致 `{body}` 不被替换）
-2. **Chrome headless 转 PDF**：
-   ```
-   "/c/Program Files/Google/Chrome/Application/chrome.exe" --headless=new \
-     --disable-gpu --no-pdf-header-footer \
-     --print-to-pdf="<out.pdf>" "file:///<in.html>"
-   ```
-3. **PDF 被阅读器占用时**：先输出到 `_new.pdf`，再 `mv -f _new.pdf <正式名>.pdf` 替换；替换失败则保留 `_new.pdf` 并提示用户
-4. 临时脚本用完删除
+**直接调用技能自带脚本**（不要手写临时脚本，省约 3000 token）：
 
-**CSS 要点**：A4 纸张、微软雅黑中文字体、表格斑马纹 + 深色表头、代码浅灰底、blockquote 左边框浅蓝背景、`page-break-after: avoid` 避让标题孤行、`thead { display: table-header-group }` 跨页重复表头。
+```bash
+python "<技能目录>/scripts/gen_review_pdf.py" "<md路径>" [pdf路径]
+```
 
-**验证**：用 `pypdf` 读页数和首页文本，确认中文渲染正常。
+`scripts/gen_review_pdf.py` 一条命令完成：Markdown -> HTML（GFM + 美观 CSS）-> Chrome headless PDF -> pypdf 验证页数/中文 -> 替换正式 PDF（处理阅读器占用）-> 清理临时文件。pdf 路径省略时自动取 md 同名 .pdf。
+
+脚本内嵌 CSS 要点：A4 纸张、微软雅黑中文字体、表格斑马纹 + 深色表头、代码浅灰底、blockquote 左边框浅蓝背景、`page-break-after: avoid` 避让标题孤行、`thead { display: table-header-group }` 跨页重复表头。
+
+**环境检查（合并一条命令，不要分次跑）**：
+
+```bash
+python --version; python -c "import markdown_it,pypdf; print('md-it',markdown_it.__version__,'pypdf',pypdf.__version__)"; ls "/c/Program Files/Google/Chrome/Application/chrome.exe" 2>/dev/null && echo "Chrome OK" || (ls "/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe" 2>/dev/null && echo "Edge OK")
+```
+
+> ⚠️ 若需自定义 CSS 而手写脚本：markdown-it-py 3.0 用 `MarkdownIt("default", options_update={"html": True})` + `enable(["table"])`，**不支持 `preset=` 关键字参数**（会报 TypeError）；CSS 含花括号，HTML 拼接用字符串 `+`，不要用 f-string。
 
 ## 语言风格（重要 — 去 AI 味）
 
@@ -178,8 +181,29 @@ git diff --name-status <tag>..HEAD
 - **发现的工程问题**（如子模块配置异常、`.gitmodules` 缺映射）如实提示，由用户决定是否记录进报告
 - **不要一味顺着用户**：若用户思路有风险或误区，直接指出并给理由
 
-## Token 预算
+## 省 token 举措（预置，运行时直接复用）
 
-- 关键提交的 diff 审查用 hunk 头概览 + 针对性深看，不要全量 dump 大 diff
-- 大 diff（>200 行）先 grep hunk 头，再针对性看关键函数
-- 报告精炼，复测建议是重点，其他部分从简
+以下举措已实测有效，运行时直接套用，不要重新探索：
+
+1. **PDF 生成调用固化脚本**：`python <技能目录>/scripts/gen_review_pdf.py <md路径>` 一条命令完成，不手写临时脚本。省约 3000 token（CSS + 脚本逻辑不入上下文）。
+
+2. **范围元数据查询并行**：tag 列表、HEAD SHA、子模块状态、当前分支 4 个查询合并成一次响应（多个 Bash 并行），不逐个执行。
+
+3. **环境检查合并一条 Bash**：Python 版本 + markdown-it-py + pypdf + Chrome 路径检查合并成一次调用（见 PDF 生成章节）。
+
+4. **diff 审查 hunk 头 + 关键词 grep**（核心省 token 手法）：
+   - 概览：`git show <commit> | grep -E "^diff --git|^@@"` 看改了哪些函数
+   - 深看：`git show <commit> -- <file> | grep -E "^\+" | grep -v "^+++" | grep -iE "join|stop|wait|thread|delete|mutex|lock|nullptr|disconnect"` 只看新增行的关键词
+   - 大 diff（>200 行）绝不全量 dump
+
+5. **多提交 stat 并行**：`git show <commit> --stat` 多个提交并行查规模，不逐个全量 diff。
+
+6. **二进制一次性过滤**：`git diff --name-only <tag>..HEAD | grep -iE "\.(dll|lib|pdb|exe|trt|onnx|engine)$"` 一次列全部二进制，不逐个文件判断。
+
+7. **commit 按主题归类**：不逐个审查所有提交，按主题分组（如"多相机合图""判定工具"），只对关键提交深看 diff，其余归类一笔带过。
+
+8. **报告一次成型 Write**：用 Write 一次写完整个报告，不多次 Edit 拼接。
+
+9. **强制范围确认前置**：用户确认范围后再做实质工作，避免方向错误后返工（最大省 token 项，一次错误方向浪费上万 token）。
+
+其他：报告精炼，复测建议是重点，其他部分从简。
