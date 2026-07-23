@@ -8,6 +8,7 @@
 | --- | --- |
 | `vt-algorithm-concept-explainer` | 解释图像算法、数学概念、OpenCV/HALCON 函数与工业视觉工程要点。 |
 | `vt-project-activity-analysis` | 分析 C/C++、Python Git 工程及子工程的贡献度、分支活跃度与构建产物。 |
+| `vt-check-before-release` | 发布前审查当前分支从 Tag 到 HEAD 的变更，给出复测建议、验收标准和发布红线。 |
 
 ## 安装
 
@@ -18,17 +19,33 @@
 npx --version
 ```
 
+安装单个skill
+```powershell
+npx skills add \\192.168.205.91\f\Project\EfficiencySkill -g  --skill vt-algorithm-concept-explainer
+```
+
+列出有哪些skill可以安装
+```powershell
+npx skills add \\192.168.205.91\f\Project\EfficiencySkill --list
+```
+
 安装全部 skill：
 
 ```powershell
-npx skills@latest add <组织或用户名>/EfficiencySkill -g -a codex --skill "*" -y
+npx skills@latest add \\192.168.205.91\f\Project\EfficiencySkill -g -a --skill "*" -y
 ```
 
 查询已安装 skill：
 
 ```powershell
-npx skills@latest list -g -a codex
+npx skills@latest list -g -a
 ```
+
+将当前仓库的skill更新到系统中
+```powershell
+npx skills@latest add . -g -a --skill "*" --copy -y
+```
+
 
 ## 仓库约定
 
