@@ -196,7 +196,7 @@ def main():
 
     # 3. 验证
     pages, cn_ok = verify_pdf(new_pdf)
-    if pages < 0:
+    if pages < 1:
         print("[3/4] WARNING: pypdf 验证失败，跳过")
     else:
         print("[3/4] 验证: 页数 =", pages, "| 中文渲染 =", "OK" if cn_ok else "异常")
