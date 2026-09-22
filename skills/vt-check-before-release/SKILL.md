@@ -88,7 +88,9 @@ git diff --name-status <tag>..HEAD
 
 ### 6. 整体复测重点
 
-把相同链路、相同接口或相同风险合并为一条全局复测项。每项写清楚复测场景和通过标准；不限制条目数量，但不得重复。
+只有同一个功能或同一条完整功能链路的复测才允许合并。不同功能即使共用接口、数据或风险类型，也必须分别列出复测内容。
+
+新功能如果调用、修改或改变了旧功能路径，在该新功能的复测项中把所有关联旧功能一并列出；每个关联功能都要写清楚复测场景和通过标准。不限制条目数量，但同一功能的重复场景必须合并。
 
 ### 7. 发布阻止红线
 
@@ -121,7 +123,7 @@ git diff --name-status <tag>..HEAD
   ```
 - 不输出“新功能与功能完善”“Bug 修复”“影响模块与复测建议”等模块；不列文件清单、逐 commit 记录、完整 diff 或实现过程。
 - 各模块信息后，报告只保留三个全局章节：**发布阻止红线**、**整体复测重点**、**风险提示**。
-- 发布阻止红线、整体复测重点和风险提示不限制条目数量；相同原因、相同场景或相同结论必须合并，不重复表述。没有发布阻止项时明确写“无发布阻止项”。
+- 发布阻止红线、整体复测重点和风险提示不限制条目数量。整体复测重点只允许合并同一个功能或同一条完整功能链路；不同功能必须单独列项。新功能影响旧功能时，在该项内列全关联旧功能的复测内容。没有发布阻止项时明确写“无发布阻止项”。
 - 二进制库且无源码时，仅在影响发版时标注“未做源码验证”。Markdown 只能作为生成 PDF 的临时输入；最终只保留 PDF。
 
 ## 输出
@@ -134,7 +136,7 @@ git diff --name-status <tag>..HEAD
 
 ### PDF 生成
 
-环境依赖：Python 3 + `markdown-it-py` + `pypdf` + Chrome 或 Edge
+环境依赖：Python 3 + Chrome 或 Edge。脚本会自动安装缺失的 `markdown-it-py` 和 `pypdf`；Chrome/Edge 未安装时会提示用户安装。
 
 **直接调用技能自带脚本**（不要手写临时脚本，省约 3000 token）：
 
@@ -142,7 +144,7 @@ git diff --name-status <tag>..HEAD
 python "<技能目录>/scripts/gen_review_pdf.py" "<md路径>" [pdf路径]
 ```
 
-`scripts/gen_review_pdf.py` 一条命令完成：Markdown -> HTML（GFM + 美观 CSS）-> Chrome headless PDF -> pypdf 验证页数/中文 -> 替换正式 PDF（处理阅读器占用）-> 清理临时文件。pdf 路径省略时自动取 md 同名 .pdf。
+`scripts/gen_review_pdf.py` 一条命令完成：自动安装缺失 Python 依赖 -> Markdown -> HTML（GFM + 美观 CSS）-> Chrome headless PDF -> pypdf 验证页数/中文 -> 替换正式 PDF（处理阅读器占用）-> 清理临时文件。pdf 路径省略时自动取 md 同名 .pdf。PDF 成功后删除临时 Markdown；依赖安装、浏览器检测、转换、验证或替换失败时保留 Markdown 并提示用户路径。
 
 脚本内嵌 CSS 要点：A4 纸张、微软雅黑中文字体、表格斑马纹 + 深色表头、代码浅灰底、blockquote 左边框浅蓝背景、`page-break-after: avoid` 避让标题孤行、`thead { display: table-header-group }` 跨页重复表头。
 

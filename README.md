@@ -21,18 +21,18 @@ npx --version
 
 安装单个skill
 ```powershell
-npx skills add \\192.168.205.91\f\Project\EfficiencySkill -g  --skill vt-algorithm-concept-explainer
+npx skills add Project/EfficiencySkill -g  --skill vt-check-before-release -y
 ```
 
 列出有哪些skill可以安装
 ```powershell
-npx skills add \\192.168.205.91\f\Project\EfficiencySkill --list
+npx skills add Project/EfficiencySkill --list
 ```
 
 安装全部 skill：
 
 ```powershell
-npx skills@latest add \\192.168.205.91\f\Project\EfficiencySkill -g -a --skill "*" -y
+npx skills@latest add Project/EfficiencySkill -g -a --skill "*" -y
 ```
 
 查询已安装 skill：
@@ -41,11 +41,17 @@ npx skills@latest add \\192.168.205.91\f\Project\EfficiencySkill -g -a --skill "
 npx skills@latest list -g -a
 ```
 
-将当前仓库的skill更新到系统中
+将当前仓库的skill安装到系统中
 ```powershell
 npx skills@latest add . -g -a --skill "*" --copy -y
 ```
 
+将当前仓库的skill更新到服务器中
+```powershell
+./Publish-EfficiencySkill.cmd
+```
+
+内网仓库地址： \\192.168.205.91\f\Project\EfficiencySkill
 
 ## 仓库约定
 

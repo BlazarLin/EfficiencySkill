@@ -15,6 +15,13 @@ import os
 import sys
 import shutil
 import subprocess
+import importlib
+
+
+PYTHON_DEPENDENCIES = (
+    ("markdown_it", "markdown-it-py"),
+    ("pypdf", "pypdf"),
+)
 
 
 # ---------- CSS（含花括号，用普通字符串，不可用 f-string 拼接）----------
@@ -83,6 +90,52 @@ li { margin: 3px 0; }
 hr { border: none; border-top: 1px solid #ccc; margin: 18px 0; }
 a { color: #2c5282; text-decoration: none; }
 """
+
+
+def ensure_python_dependencies():
+    """自动安装并验证 PDF 生成所需的 Python 包。"""
+    for module_name, package_name in PYTHON_DEPENDENCIES:
+        try:
+            importlib.import_module(module_name)
+            continue
+        except ImportError:
+            print("[依赖] 安装缺失包:", package_name)
+
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "pip",
+                "install",
+                "--disable-pip-version-check",
+                package_name,
+            ]
+        )
+        if result.returncode != 0:
+            print("ERROR: 依赖安装失败:", package_name)
+            return False
+
+        importlib.invalidate_caches()
+        try:
+            importlib.import_module(module_name)
+        except ImportError:
+            print("ERROR: 安装后仍无法导入:", module_name)
+            return False
+    return True
+
+
+def cleanup_file(path):
+    """删除脚本生成的临时文件。"""
+    try:
+        if os.path.exists(path):
+            os.remove(path)
+    except OSError:
+        pass
+
+
+def preserve_markdown_notice(md_path):
+    """明确告知调用方 PDF 失败时保留了 Markdown。"""
+    print("PDF 生成失败，Markdown 已保留:", md_path)
 
 
 def find_chrome():
@@ -175,33 +228,48 @@ def main():
     html_path = os.path.join(work_dir, "_review_tmp.html")
     new_pdf = os.path.join(work_dir, "_review_new.pdf")
 
+    if not ensure_python_dependencies():
+        preserve_markdown_notice(md_path)
+        sys.exit(1)
+
     # 1. Markdown -> HTML
     try:
         html_size = md_to_html(md_path, html_path)
         print("[1/4] HTML 生成:", html_path, "(", html_size, "bytes )")
     except Exception as e:
         print("ERROR: HTML 生成失败:", e)
+        cleanup_file(html_path)
+        preserve_markdown_notice(md_path)
         sys.exit(1)
 
     # 2. Chrome -> PDF
     chrome = find_chrome()
     if not chrome:
         print("ERROR: 未找到 Chrome 或 Edge，请安装后重试")
+        cleanup_file(html_path)
+        preserve_markdown_notice(md_path)
         sys.exit(1)
     print("[2/4] 使用浏览器:", chrome)
     if not chrome_to_pdf(chrome, html_path, new_pdf):
         print("ERROR: PDF 生成失败（Chrome headless 未产出文件）")
+        cleanup_file(new_pdf)
+        cleanup_file(html_path)
+        preserve_markdown_notice(md_path)
         sys.exit(1)
     print("       临时 PDF:", new_pdf, "(", os.path.getsize(new_pdf), "bytes )")
 
     # 3. 验证
     pages, cn_ok = verify_pdf(new_pdf)
     if pages < 1:
-        print("[3/4] WARNING: pypdf 验证失败，跳过")
-    else:
-        print("[3/4] 验证: 页数 =", pages, "| 中文渲染 =", "OK" if cn_ok else "异常")
-        if not cn_ok:
-            print("       WARNING: 首页未检出中文，可能渲染异常")
+        print("ERROR: pypdf 验证失败，拒绝替换正式 PDF")
+        cleanup_file(new_pdf)
+        cleanup_file(html_path)
+        preserve_markdown_notice(md_path)
+        sys.exit(1)
+
+    print("[3/4] 验证: 页数 =", pages, "| 中文渲染 =", "OK" if cn_ok else "异常")
+    if not cn_ok:
+        print("       WARNING: 首页未检出中文，可能渲染异常")
 
     # 4. 替换正式 PDF（处理占用）
     print("[4/4] 替换正式 PDF:", pdf_path)
@@ -213,14 +281,18 @@ def main():
     except PermissionError:
         print("       WARNING: 正式 PDF 被占用（阅读器打开？），临时版保留:", new_pdf)
         print("       关闭阅读器后手动改名，或重跑本脚本")
+        cleanup_file(html_path)
+        preserve_markdown_notice(md_path)
+        sys.exit(1)
     except Exception as e:
         print("       WARNING: 替换失败:", e, "| 临时版保留:", new_pdf)
+        cleanup_file(html_path)
+        preserve_markdown_notice(md_path)
+        sys.exit(1)
 
-    # 5. 清理临时 HTML
-    try:
-        os.remove(html_path)
-    except Exception:
-        pass
+    # 5. 成功后清理临时 HTML 与 Markdown
+    cleanup_file(html_path)
+    cleanup_file(md_path)
 
     print("完成。")
     sys.exit(0)

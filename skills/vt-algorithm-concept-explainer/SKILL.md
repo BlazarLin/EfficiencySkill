@@ -1,9 +1,15 @@
 ---
 name: vt-algorithm-concept-explainer
-description: 深入解释算法名词和核心原理，面向初学者，用配图、应用场景、工程背景和必要的网络资料辅助理解。适用于用户要求解释算法、图像处理方法、数学概念、OpenCV/HALCON 函数、信号处理概念，或 PhaseCorrelate、FFT、互功率谱、相关面、模板匹配、滤波、形态学、标定、配准、优化、缺陷检测等相关知识点时。
+description: 仅当用户明确点名 `vt-algorithm-concept-explainer`、要求“使用算法名词解释技能”，或显式指定本技能目录时，才用于深入解释算法名词和核心原理。不得根据算法、数学、OpenCV、HALCON 或信号处理等关键词自动启用。
 ---
 
 # 算法名词解释
+
+## 触发边界（强制）
+
+- 仅在用户明确点名 `vt-algorithm-concept-explainer`、要求“使用算法名词解释技能”，或显式指定本技能目录时执行本技能。
+- 用户只提到算法、数学、OpenCV、HALCON、FFT、PhaseCorrelate 等关键词，但没有主动调用本技能时，**不得**启用本技能；按普通对话或其他已触发技能处理。
+- 不要为了使用本技能而追问用户是否要启用；只有用户主动点名才生效。
 
 ## 目标
 
